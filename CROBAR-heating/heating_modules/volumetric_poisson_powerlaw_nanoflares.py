@@ -2,7 +2,7 @@ import logging
 import warnings
 import functools
 import time
-import processify
+#import processify
 import resource
 from tqdm.auto import tqdm
 
@@ -31,7 +31,7 @@ from synthesizAR.extrapolate.helpers import from_local, to_local, magnetic_field
 
 # This generates a heating map that's proportional to the field strength plus a footpoint
 # heating image (heatmap_2d). The overall heat amount is set to h_rate0.
-@processify.processify
+#@processify.processify
 def generate_heatmap_fps(Bfield,heatmap_2d,h_rate0):
 	
 	Bdomain = np.vstack(np.array((Bfield.domain_left_edge,Bfield.domain_right_edge)))
@@ -533,4 +533,36 @@ class volumetric_poisson_powerlaw_nanoflares(object):
 		decay_end = rise_start+2*thalf*u.s
         
 		return{'magnitude':magnitude[magnitude > 0],'rise_start':rise_start,'rise_end':rise_end,'decay_start':decay_start,'decay_end':decay_end, 'loop_length':loop_length}
+	
+
+	def calculate_uniform_event_properties(self,loop):
+		dt = (self.times[1]-self.times[0])
+		loopindex = np.where(self.loopnames == loop.name)
+
+		lfrac = 1.0
+		bfrac = 1.0
+		magmax = 100.0e0
+
+		rise_start = self.times[0:-1]*u.s
+		rise_end = rise_start + dt*u.s  # Extend the rise time
+		decay_start = rise_start + dt*u.s  # Start decay at extended rise end
+		decay_end = rise_start + 2*dt*u.s  # End decay later to create overlap
+
+		open_fac = 1.0*self.loop_closed[loopindex[0]]+2.0*(self.loop_closed[loopindex[0]] == 0)
+		open_fac = open_fac[0]
+		length = (self.loopid_info['looplengths'][loopindex][0])
+		loop_length = 1.0*open_fac*length/2.0
+
+		magnitude = np.clip((self.loop_heating[loopindex,:].flatten()[:-1])*lfrac*bfrac/self.loop_volumes[loopindex],0,magmax)*u.erg/open_fac
+
+		e_tot = np.sum(magnitude)*self.duration.value/2
+		mag = e_tot/self.times[-1]*np.ones(len(self.times)-1)
+		mag[0] = 0.0 # No heating at the first time step?
+
+
+		#magnitude = mag*np.ones(len(self.times)-1)*u.erg/open_fac
+		#magnitude = mag*np.ones(len(self.times))*u.erg/open_fac
+
+
+		return{'magnitude':mag[mag>0],'rise_start':rise_start,'rise_end':rise_end,'decay_start':decay_start,'decay_end':decay_end, 'loop_length':loop_length}
 
