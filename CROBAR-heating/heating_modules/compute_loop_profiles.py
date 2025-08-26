@@ -19,7 +19,7 @@ def compute_loop_profiles(loopindex,loops,hterms,loopid_info,lbin_cents,segment_
 	
 	c2 = 0.9 # Average over apex ratio
 	gmax = 20
-	ng = 101 # number of scaling exponents to search over
+	ng = 41 # number of scaling exponents to search over
 	logtmin = 4
 	logtmax = 8
 	ntemp = 101
@@ -39,7 +39,7 @@ def compute_loop_profiles(loopindex,loops,hterms,loopid_info,lbin_cents,segment_
 	times = loop.time
 	hofl = segment_heights[loopindex,:] # Height profile
 	aofl = np.clip(segment_relareas[loopindex,:]*area_norms[loopindex],dvox[0]*dvox[1],np.prod(nvox*dvox))# Area profile
-	if(time_indices == None): time_indices = np.arange(len(times))
+	if(time_indices is None): time_indices = np.arange(len(times))
 	if(np.isscalar(time_indices)): time_indices = np.array(time_indices,ndmin=1)
 	ntimes = np.size(time_indices)
 	nl = np.size(lengths)
@@ -71,8 +71,8 @@ def compute_loop_profiles(loopindex,loops,hterms,loopid_info,lbin_cents,segment_
 		#hscals = tavg*tavg_scals*hfac
 		temps = 10**logtmin+(tmax-10**logtmin)*tprofs
 		hscals = (10**logtmin+(tmax-10**logtmin)*tavg_scals)*hfac        
-		if(np.all(np.isfinite(c1))*np.all(np.isfinite(aofl))*np.isfinite(tavg)*np.all(np.isfinite(dens))*np.isfinite(ltot)*np.isfinite(loopvol)==0):
-			print(np.all(np.isfinite(c1)),np.all(np.isfinite(aofl)),tavg,np.all(np.isfinite(dens)),ltot,loopvol)
+		#if(np.all(np.isfinite(c1))*np.all(np.isfinite(aofl))*np.isfinite(tavg)*np.all(np.isfinite(dens))*np.isfinite(ltot)*np.isfinite(loopvol)==0):
+		#	print(np.all(np.isfinite(c1)),np.all(np.isfinite(aofl)),tavg,np.all(np.isfinite(dens)),ltot,loopvol)
 		rl_ebtel = (1+c1)*np.trapz(aofl*np.interp(tavg,rltemp,rloft)*dens**2,x=lengths)*ltot/loopvol
 		for j in range(0,ng): 
 			pscals[j,:] = np.exp(-hofl/hscals[j])
