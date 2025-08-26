@@ -1,0 +1,34 @@
+environment:
+
+	install scons from apt/yum (linux) or brew (macports). For debian and variants (ubuntu, mint, etc) should just need
+		sudo apt install scons
+	 
+	For Mac:
+		if you install boost via brew, and depending on the version you use, you will need to approprialty update the SConstruct file to point to this install. Something like:
+
+		if 'darwin' in sys.platform:
+			print("Using Mac OS X compile options.")
+			env.Append(CPPPATH=['/opt/local/include', '/usr/include/malloc','/opt/homebrew/include/'])
+			env.Append(LIBS=['boost_program_options'])
+			env.Append(LIBPATH=['/opt/homebrew/lib'])
+
+		you might also need to set cxx_flags = ['-std=c++14',]
+	
+	
+	install conda (if absent) and make environment:
+		conda create -n crobar-heating
+	active and install standard solar packages to environment:
+		conda activate crobar-heating
+		conda install jupyter numpy numba matplotlib scipy astropy sunpy
+		
+	run ebtelplusplus compilation:
+		cd ebtelPlusPlus
+		scons
+		
+
+Notebooks:
+	CROBAR_heating_HMI_AIA_heating_reconstruction.ipynb -- Generates initial heating distribution and loop info files
+	compute_loop_areas.ipynb -- Computes supplementary loop area information to accompany loop info
+	slice_em3d.ipynb -- missing, produces sliced 3d emission...
+	load_em3d.ipynb -- loads sliced 3d emission and downsamples to make heating map, done in separate notebook due to memory issues
+	simulation_iswat.ipynb -- produces heating events for EBTEL simulation

@@ -1,0 +1,13 @@
+# output directories
+files/
+ebtel_plots_g2.2/
+ebtel_fits/
+
+
+# Jupyter Notebook
+.ipynb_checkpoints
+.jupyter
+
+# OS-specific files
+.DS_Store
+
