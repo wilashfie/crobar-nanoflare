@@ -361,7 +361,7 @@ def heat_chunk(heatmap, ijkoffset, duration, t_tot, dt, cdf, loge, area_voxels, 
 
 class volumetric_poisson_powerlaw_nanoflares(object):
 
-	def __init__(self,loopids,loopid_info, loop_volumes):
+	def __init__(self,loopids,loopid_info):
 		self.nv = loopid_info['nvox']
 		self.vmin = loopid_info['voxmin']
 		self.dv = loopid_info['dvox']
@@ -370,7 +370,8 @@ class volumetric_poisson_powerlaw_nanoflares(object):
 		self.loopid_info = loopid_info
 		self.loop_closed = loopid_info['loop_closed']
 		self.loopnames = np.array(loopid_info['loopnames'])
-		self.loop_volumes = loop_volumes # np.zeros(self.nl+1)
+		#self.loop_volumes = loop_volumes # np.zeros(self.nl+1)
+		self.loop_volumes = loopid_info['loop_volumes']
 		#self.heatmap2 = np.zeros(self.nv,dtype='float32')
 		#for i in range(0,self.nv[2]): np.add.at(self.loop_volumes,loopids[:,:,i],1)
 		#self.loop_volumes *= np.prod(self.dv)
