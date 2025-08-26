@@ -3,6 +3,11 @@ files/
 ebtel_plots_g2.2/
 ebtel_fits/
 
+# Alternative: More specific patterns
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
 
 # Jupyter Notebook
 .ipynb_checkpoints
