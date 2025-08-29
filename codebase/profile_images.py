@@ -1,6 +1,7 @@
 import os, copy, sunpy, numpy as np, matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from aia_noise import aia_noise
+import astropy.units as u
 
 
 def image_gen(i, amat_gen, evaluator, trlogt, tresps, basemaps, channels, dvox, asec_cm, nl=255):
@@ -19,19 +20,37 @@ def image_gen(i, amat_gen, evaluator, trlogt, tresps, basemaps, channels, dvox, 
 	return(images)
 
 def write_files(t, images, basemaps, channels, base_time, fits_dir='ebtel_fits/', image_dir='images/', gfac=1.0/2.2):
+
 	new_time = base_time + timedelta(seconds=int(t))
 	date_obs_string = new_time.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3]	
+
 	for j in range(0,len(channels)):
-		save_string = 'ebtel_'+channels[j]+'_'+new_time.strftime('%Y%m%dT%H%M%S')+'.fits'
+
+		#save_string = 'ebtel_'+channels[j]+'_'+new_time.strftime('%Y%m%dT%H%M%S')+'.fits'
+		save_string = 'ebtel_'+channels[j].split('_')[0]+'_'+new_time.strftime('%Y%m%dT%H%M%S')+'.fits'
+
 		meta = copy.deepcopy(basemaps[j].meta)
 		meta['date-obs'] = date_obs_string
+		meta['wavelnth'] = meta['wavelnth']
+		meta['wave_str'] = channels[j] # f'{meta['wavelnth']}_THIN'
 
-		outmap = sunpy.map.Map(images[j],meta)
-		outmap.save(os.path.join(fits_dir,save_string),overwrite=True)
+		temp_map = sunpy.map.Map(images[j], meta)
+		center_x, center_y = temp_map.data.shape[1] // 2, temp_map.data.shape[0] // 2
+		
+		x_start = center_x - 256
+		x_end = center_x + 255  
+		y_start = center_y - 256
+		y_end = center_y + 255
+		
+		bl = temp_map.pixel_to_world(x_start*u.pixel,y_start*u.pixel)
+		tr = temp_map.pixel_to_world(x_end*u.pixel,y_end*u.pixel)
+		
+		outmap = temp_map.submap(bl, top_right=tr)
+		outmap.save(f'{fits_dir}/{channels[j].split('_')[0]}/{save_string}', overwrite=True)
 
-		image_dir = 'images/'
 		fig = plt.figure(figsize=(8,8))		
 		plt.imshow(np.clip(outmap.data,0,None)**gfac,cmap=plt.get_cmap('gray'), vmin=0, vmax=3000**gfac)
 		plt.title(channels[j]+' '+date_obs_string)	
-		fig.savefig(image_dir + 'ebtel_'+channels[j]+'_'+new_time.strftime('%Y%m%dT%H%M%S')+'.png')
+		img_string = 'ebtel_'+channels[j].split('_')[0]+'_'+new_time.strftime('%Y%m%dT%H%M%S')+'.png'
+		fig.savefig(f'{image_dir}/{channels[j].split('_')[0]}/{img_string}',dpi=150)
 		plt.close()
