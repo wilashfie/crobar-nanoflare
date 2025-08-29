@@ -1,18 +1,30 @@
 import numpy as np
+from load_terms import load_terms
 from tqdm.auto import tqdm
 
-import sys
-import os
-import importlib
+'''
+class general_profile(object):
+	# Prototype for example purposes...
+	def __init__(self, ebtel_profiles, hydrad_profiles):
+		self.ebtel_profiles = ebtel_profiles
+		self.hydrad_profiles = hydrad_profiles
+		
+	def calculate(self, loop_index, time_index):
+		profile = self.hydrad_profiles.calculate(loop_index, time_index)		
+		if(profile is None):
+			profile = self.ebtel_profiles.calculate(loop_index, time_index)
+			
+		return profile
+'''
 
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(parent_dir)
-
-heating_modules = importlib.import_module('CROBAR-heating.heating_modules.load_terms')
-load_terms = heating_modules.load_terms
+def ebtel_powerlaw_radloss(logt):
+	temp = 10**logt
+	return (1.09e-31*temp**2*(logt <= 4.97) + 8.87e-17/temp*(logt > 4.97)*(logt <= 5.67) + 
+			1.90e-22*(logt > 5.67)*(logt <= 6.18) + 3.53e-13/temp**1.5*(logt > 6.18)*(logt <= 6.55) +
+			3.46e-25*temp**(1.0/3.0)*(logt > 6.55)*(logt <= 6.9) + 
+			5.49e-16/temp*(logt > 6.9)*(logt <= 7.63) + 1.96e-27*temp**0.5*(logt > 7.63))
 
 class variable_profile(object):
-
 	def __init__(self, nvox, dvox, times, loops, area_config, 
 				c2 = 0.9, gmax=10, ng=41, rltemp=None, rloft=None, hfac = 60e8/1.0e6):
 
@@ -25,14 +37,7 @@ class variable_profile(object):
 		self.logtmin, self.logtmax = np.log10(self.tmin), np.log10(self.tmax)
 		self.rltemp = rltemp; self.rllogt = np.log10(self.rltemp)
 		
-		if(rloft is None):
-			rloft = (1.09e-31*self.rltemp**2*(self.rllogt <= 4.97) + 
-					8.87e-17/self.rltemp*(self.rllogt > 4.97)*(self.rllogt <= 5.67) + 
-					1.90e-22*(self.rllogt > 5.67)*(self.rllogt <= 6.18) + 
-					3.53e-13/self.rltemp**1.5*(self.rllogt > 6.18)*(self.rllogt <= 6.55) +
-					3.46e-25*self.rltemp**(1.0/3.0)*(self.rllogt > 6.55)*(self.rllogt <= 6.9) +
-					5.49e-16/self.rltemp*(self.rllogt > 6.9)*(self.rllogt <= 7.63) + 
-					1.96e-27*self.rltemp**0.5*(self.rllogt > 7.63))
+		if(rloft is None): rloft = ebtel_powerlaw_radloss(self.rllogt)
 		self.rloft = rloft
 
 		self.nleng = len(self.lfracs)
